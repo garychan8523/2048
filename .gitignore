@@ -1,0 +1,58 @@
+# Frontend
+node_modules/
+dist/
+dist-ssr/
+*.local
+.eslintcache
+.stylelintcache
+
+# Backend
+__pycache__/
+**.pytest_cache**
+**.db
+*.py[cod]
+*$py.class
+**.env**
+.venv
+venv/
+ENV/
+build/
+develop-eggs/
+downloads/
+eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Firebase cache and logs
+.firebase/
+*-debug.log
+.runtimeconfig.json
+
+# Firebase Emulators
+firestore-debug.log
+ui-debug.log
+
+# If using Firebase Functions with Node.js
+functions/node_modules/
+functions/lib/
+functions/npm-debug.log
+
+# Private keys/service account files
+# (Always keep these out of version control)
+!firebase.json
+!firestore.rules
+!storage.rules
