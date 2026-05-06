@@ -35,5 +35,5 @@ With frontend-backend design it is assumed that game state are persisted and com
 - `gcloud run deploy backend-api --source . --region asia-southeast1 --allow-unauthenticated --set-env-vars APP_ENV=production`  
 
 ### Live demo  
-- https://backend-api-549124287752.asia-southeast1.run.app
+- https://backend-api-549124287752.asia-southeast1.run.app  
 - https://dedd-app-2.web.app/  
