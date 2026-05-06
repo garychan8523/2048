@@ -10,6 +10,8 @@ With frontend-backend design it is assumed that game state are persisted and com
 
 - the game service are implemented as http endpoints, while its straight forward, socket would be a more preferable interface given the nature of long living and frequent updates nature and potentially communicate with other players. the http overhead would soon be the main bottleneck.  
 
+- when running in local (determines by if APP_ENV set to production), sqlite repository implementation will be choosen, for production firestore implementation will be choosen
+
 ### Features  
 - 2048 game basics  
 - game state persistenece to custom destination  
