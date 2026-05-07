@@ -5,6 +5,7 @@ interface Tile {
 
 type GridValue = Tile | null;
 type Grid = GridValue[][];
+type SimulatedGrid = { readonly brand: 'simulation'; } & Grid;
 
 const DIRECTION = {
     UP: 'up',
@@ -21,72 +22,96 @@ const GAME_STATUS = {
 };
 type GameStatus = typeof GAME_STATUS[keyof typeof GAME_STATUS];
 
-const transpose = (grid: number[][]): number[][] => {
-    return grid[0].map((_, colIndex) => grid.map(row => row[colIndex]));
-};
+let tileIdCounter = 0;
 
-const reverse = (grid: number[][]): number[][] => {
-    return grid.map(row => [...row].reverse());
-};
+const createTile = (value: number): Tile => ({
+    id: tileIdCounter++,
+    value
+});
 
-const simulateMove = (grid: number[][], direction: Direction): number[][] => {
-    const mergeNumbersLeft = (g: number[][]): number[][] => {
-        return g.map(row => {
-            let values = row.filter(val => val !== 0);
-            for (let i = 0; i < values.length - 1; i++) {
-                if (values[i] === values[i + 1]) {
-                    values[i] *= 2;
-                    values.splice(i + 1, 1);
-                }
+const mergeLeft = (grid: Grid, isSimulation: boolean = false): Grid => {
+    return grid.map((row) => {
+        let values: (Tile | null)[] = row.filter((tile) => tile !== null);
+
+        for (let i = 0; i < values.length - 1; i++) {
+            const current = values[i];
+            const next = values[i + 1];
+
+            if (current && next && current.value === next.value) {
+                // dummy id for simulation
+                values[i] = isSimulation
+                    ? { id: -1, value: current.value * 2 }
+                    : createTile(current.value * 2);
+
+                values[i + 1] = null;
+                i++;
             }
-            while (values.length < row.length) values.push(0);
-            return values;
-        });
-    };
+        }
 
-    let temp = structuredClone(grid);
+        const merged: GridValue[] = values.filter((tile): tile is Tile => tile !== null);
+        while (merged.length < row.length) {
+            merged.push(null);
+        }
 
-    switch (direction) {
-        case DIRECTION.UP:
-            temp = transpose(temp as any) as any;
-            temp = mergeNumbersLeft(temp);
-            temp = transpose(temp as any) as any;
-            break;
-        case DIRECTION.DOWN:
-            temp = transpose(temp as any) as any;
-            temp = reverse(temp as any) as any;
-            temp = mergeNumbersLeft(temp);
-            temp = reverse(temp as any) as any;
-            temp = transpose(temp as any) as any;
-            break;
-        case DIRECTION.LEFT:
-            temp = mergeNumbersLeft(temp);
-            break;
-        case DIRECTION.RIGHT:
-            temp = reverse(temp as any) as any;
-            temp = mergeNumbersLeft(temp);
-            temp = reverse(temp as any) as any;
-            break;
-    }
-    return temp;
+        return merged;
+    });
 };
 
-const checkCanMove = (grid: number[][], direction: Direction): boolean => {
-    const next = simulateMove(grid, direction);
-    for (let r = 0; r < grid.length; r++) {
-        for (let c = 0; c < grid[r].length; c++) {
-            if (grid[r][c] !== next[r][c]) return true;
+const isGridEqual = (gridA: Grid, gridB: Grid): boolean => {
+    for (let i = 0; i < gridA.length; i++) {
+        for (let j = 0; j < gridA[i].length; j++) {
+            if (gridA[i][j]?.value !== gridB[i][j]?.value) {
+                return false;
+            }
         }
     }
-    return false;
+    return true;
 };
 
-const getEmptyCells = (grid: number[][]): { r: number; c: number; }[] => {
+const rotateClockwise = (grid: Grid): Grid => {
+    return grid[0].map((_, colIndex) =>
+        grid.map(row => row[colIndex]).reverse()
+    );
+};
+
+const getNextState = (grid: Grid, direction: Direction, isSimulation: boolean = true): Grid => {
+    const rotations = {
+        [DIRECTION.LEFT]: 0,
+        [DIRECTION.UP]: 3,
+        [DIRECTION.RIGHT]: 2,
+        [DIRECTION.DOWN]: 1
+    }[direction];
+
+    let tempGrid = grid.map(row => [...row]);
+
+    // rotate for merge left
+    for (let i = 0; i < rotations; i++) tempGrid = rotateClockwise(tempGrid);
+
+    // merge
+    const mergedGrid = mergeLeft(tempGrid, isSimulation);
+
+    // rotate back to original
+    let finalGrid = mergedGrid;
+    for (let i = 0; i < (4 - rotations) % 4; i++) finalGrid = rotateClockwise(finalGrid);
+
+    return finalGrid;
+};
+
+const simulateMove = (grid: Grid, direction: Direction): SimulatedGrid => {
+    return getNextState(grid, direction, true) as SimulatedGrid;
+};
+
+const checkCanMove = (grid: Grid, direction: Direction): boolean => {
+    const nextState = getNextState(grid, direction, true);
+    return !isGridEqual(grid, nextState);
+};
+
+const getEmptyCells = (grid: Grid): { r: number; c: number; }[] => {
     const emptyCells: { r: number; c: number; }[] = [];
 
     for (let r = 0; r < grid.length; r++) {
         for (let c = 0; c < grid[r].length; c++) {
-            if (grid[r][c] === 0) {
+            if (grid[r][c] === null) {
                 emptyCells.push({ r, c });
             }
         }
@@ -98,6 +123,10 @@ const getEmptyCells = (grid: number[][]): { r: number; c: number; }[] => {
 export {
     DIRECTION,
     GAME_STATUS,
+    mergeLeft,
+    isGridEqual,
+    rotateClockwise,
+    getNextState,
     simulateMove,
     checkCanMove,
     getEmptyCells

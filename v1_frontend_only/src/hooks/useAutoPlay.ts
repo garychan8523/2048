@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { type Direction, type GameStatus, DIRECTION, GAME_STATUS } from '../utils/gameLogic';
+import { type Direction, type GameStatus, GAME_STATUS } from '../utils/gameLogic';
 
 interface UseAutoPlayOptions {
     suggestedMove: Direction | null;
