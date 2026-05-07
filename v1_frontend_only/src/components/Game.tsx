@@ -39,12 +39,6 @@ function Game(props: GameProps) {
         intervalMs: 100,
     });
 
-    useEffect(() => {
-        if (status !== GAME_STATUS.ACTIVE && isAutoPlaying) {
-            pauseAutoPlay();
-        }
-    }, [status, isAutoPlaying, pauseAutoPlay]);
-
     useGameInput(move);
 
     return (
